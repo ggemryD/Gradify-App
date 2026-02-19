@@ -36,11 +36,29 @@ class _HomePageState extends State<HomePage> {
 
   void calculateGWA() {
     Map<String, double> grades = {};
+    bool hasMissingOrInvalid = false;
+
     for (var subject in selectedSubjects) {
-      double? grade = double.tryParse(gradeControllers[subject.name]?.text ?? '');
-      if (grade != null && grade >= 1.0 && grade <= 5.0) {
-        grades[subject.name] = grade;
+      String text = gradeControllers[subject.name]?.text.trim() ?? '';
+      double? grade = double.tryParse(text);
+
+      if (grade == null || grade < 1.0 || grade > 5.0) {
+        hasMissingOrInvalid = true;
+        break;
       }
+
+      grades[subject.name] = grade;
+    }
+
+    if (selectedSubjects.isNotEmpty && hasMissingOrInvalid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please enter a valid grade (1.0 - 5.0) for all subjects.'),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
     }
 
     setState(() {
@@ -54,7 +72,6 @@ class _HomePageState extends State<HomePage> {
       historyController.saveHistory(studentName, gwa!, semesterInfo, grades: grades);
     });
     
-    // Show results in popup
     showResultsDialog();
   }
 
