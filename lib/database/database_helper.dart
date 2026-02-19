@@ -16,7 +16,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'gradify.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) {
         return db.execute('''
           CREATE TABLE history(
@@ -24,9 +24,15 @@ class DatabaseHelper {
             name TEXT NOT NULL,
             gwa REAL NOT NULL,
             semester TEXT NOT NULL,
-            isDeanLister INTEGER NOT NULL
+            isDeanLister INTEGER NOT NULL,
+            gradesJson TEXT
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE history ADD COLUMN gradesJson TEXT');
+        }
       },
     );
   }

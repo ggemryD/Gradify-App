@@ -109,6 +109,169 @@ class _HistoryViewState extends State<HistoryView> {
     );
   }
 
+  Future<void> _showHistoryDetails(HistoryModel history) async {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        final grades = history.grades;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.assessment, color: Colors.indigo.shade700),
+              const SizedBox(width: 10),
+              const Flexible(
+                child: Text(
+                  "Grade Summary",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.6,
+              maxWidth: MediaQuery.of(context).size.width * 0.8,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    history.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    history.semester,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _getGwaColor(history.gwa).withOpacity(0.2),
+                          border: Border.all(
+                            color: _getGwaColor(history.gwa),
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            history.gwa.toStringAsFixed(3),
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: _getGwaColor(history.gwa),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              history.isDeanLister
+                                  ? "Dean's Lister"
+                                  : "Not a Dean's Lister",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: history.isDeanLister
+                                    ? Colors.green.shade800
+                                    : Colors.orange.shade800,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              history.isDeanLister
+                                  ? "GWA of 1.750 or better and no grade below 2.6."
+                                  : "Did not meet the Dean's List requirements for this term.",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (grades != null && grades.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Subject Grades",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...grades.entries.map(
+                      (entry) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                entry.key,
+                                style: const TextStyle(fontSize: 14),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              entry.value.toStringAsFixed(2),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Close",
+                style: TextStyle(
+                  color: Colors.indigo.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,13 +330,27 @@ class _HistoryViewState extends State<HistoryView> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      "Long-press any record to delete it",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                        fontStyle: FontStyle.italic,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Tap a record to view full details.",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Long-press any record to delete it.",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
                     ),
                     const Divider(height: 24),
                     
@@ -226,6 +403,7 @@ class _HistoryViewState extends State<HistoryView> {
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(12),
+                                  onTap: () => _showHistoryDetails(history),
                                   onLongPress: () => _showDeleteConfirmation(context, history.id!, history.name),
                                   child: Padding(
                                     padding: const EdgeInsets.all(16.0),

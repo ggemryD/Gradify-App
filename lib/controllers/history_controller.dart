@@ -24,6 +24,7 @@ class HistoryController {
       gwa: gwa,
       semester: semester,
       isDeanLister: isDeanLister,
+      grades: grades,
     );
 
     await _dbHelper.insertHistory(history); // Save to DB
